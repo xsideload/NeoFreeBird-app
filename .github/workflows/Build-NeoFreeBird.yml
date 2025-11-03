@@ -120,7 +120,7 @@ jobs:
           fi
     
           # Find the .deb file in main/packages
-          DEB_FILE=$(find main/packages -name "*.deb" -type f | head -n1)
+          DEB_FILE=$(find "$(pwd)/main/packages" -name "*.deb" -type f | head -n1)
           if [ -z "$DEB_FILE" ]; then
           echo "❌ No .deb file found in main/packages"
           exit 1
@@ -141,16 +141,13 @@ jobs:
           echo "ipa_package=NeoFreeBird_${{ github.run_id }}_${{ env.X_VERSION }}.ipa" >> "$GITHUB_OUTPUT"
           echo "tipa_package=NeoFreeBird_${{ github.run_id }}_${{ env.X_VERSION }}.tipa" >> "$GITHUB_OUTPUT"
 
-      - name: Upload IPA
-        uses: actions/upload-artifact@v4
+      - name: Create Draft Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: NeoFreeBird-injected-IPA
-          path: main/packages/${{ steps.package_name.outputs.ipa_package }}
-          if-no-files-found: error
-
-      - name: Upload TIPA
-        uses: actions/upload-artifact@v4
-        with:
-          name: NeoFreeBird-injected-TIPA
-          path: main/packages/${{ steps.package_name.outputs.tipa_package }}
-          if-no-files-found: error
+          tag_name: ${{ steps.package_name.outputs.ipa_package }}
+          name: ${{ steps.package_name.outputs.ipa_package }}
+          files: main/packages/${{ steps.package_name.outputs.ipa_package }}
+          draft: true
